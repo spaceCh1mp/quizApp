@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 )
 
 type quiz struct {
@@ -14,6 +15,7 @@ type quiz struct {
 
 func main() {
 	csvFile := flag.String("csv", "problems.csv", "A csv file in the format (question, answer)")
+	limit := flag.Int("limit", 10, "The timer is in seconds")
 	flag.Parse()
 
 	file, err := os.Open(*csvFile)
@@ -26,20 +28,27 @@ func main() {
 		exit(fmt.Sprintf("Could not read file: %s", *csvFile))
 	}
 	problem := parseRecords(records)
-	score := startQuiz(problem)
+	timer := time.NewTimer(time.Duration(*limit) * time.Second)
+	fmt.Printf("Total number of questions to answer: %d \n", len(problem))
+	fmt.Println("Time alloted: ", *limit)
+	score := startQuiz(problem, timer)
 	fmt.Printf("Your score is %d out of %d", score, len(problem))
 }
 
-func startQuiz(problems []quiz) int {
+func startQuiz(problems []quiz, limit *time.Timer) int {
 	var s int = 0
 	var a string
-	for i, p := range problems {
-		fmt.Printf("Q%d: %s = \n", i+1, p.question)
-		fmt.Scanf("%s\n", &a)
-		if a == p.answer {
-			s += 1
+	go func() {
+		for i, p := range problems {
+			fmt.Printf("Q%d: %s = \n", i+1, p.question)
+			fmt.Scanf("%s\n", &a)
+			if a == p.answer {
+				s += 1
+			}
 		}
-	}
+	}()
+	<-limit.C
+	fmt.Printf("\nYour time is up\n")
 	return s
 }
 func parseRecords(records [][]string) []quiz {
