@@ -15,7 +15,7 @@ type quiz struct {
 
 func main() {
 	csvFile := flag.String("csv", "problems.csv", "A csv file in the format (question, answer)")
-	limit := flag.Int("limit", 10, "The timer is in seconds")
+	limit := flag.Int("limit", 30, "The timer is in seconds")
 	flag.Parse()
 
 	file, err := os.Open(*csvFile)
